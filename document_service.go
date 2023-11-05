@@ -137,3 +137,27 @@ func (d *DocumentService) GetDraftCommentById(id int) (*Comment, error) {
 	}
 	return &comment, nil
 }
+
+func (d *DocumentService) SearchDrafts(text string) ([]Draft, error) {
+	query := "%" + text + "%"
+	rows, err := d.DB.Query(
+		"SELECT id, documentid, text, createdat FROM drafts WHERE text LIKE ?", query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	drafts := []Draft{}
+
+	for rows.Next() {
+		var draft Draft
+		if err := rows.Scan(&draft.ID, &draft.DocumentID, &draft.Text, &draft.CreatedAt); err != nil {
+			return nil, err
+		}
+		drafts = append(drafts, draft)
+	}
+
+	return drafts, nil
+}

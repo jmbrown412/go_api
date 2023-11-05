@@ -61,6 +61,7 @@ func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/api/drafts", a.getDraftsHandler).Methods("GET")
 	a.Router.HandleFunc("/api/drafts", a.createDraftHandler).Methods("POST")
 	a.Router.HandleFunc("/api/drafts/{id:[0-9]+}/comments", a.createCommentHandler).Methods("POST")
+	a.Router.HandleFunc("/api/drafts/comments", a.searchDraftsHandler).Methods("GET")
 }
 
 func (a *App) getDraftsHandler(w http.ResponseWriter, r *http.Request) {
@@ -76,6 +77,24 @@ func (a *App) getDraftsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, docs)
+}
+
+func (a *App) searchDraftsHandler(w http.ResponseWriter, r *http.Request) {
+	v := r.URL.Query()
+
+	text := v.Get("text")
+	drafts, err := a.DocService.SearchDrafts(text)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			respondWithError(w, http.StatusNotFound, "No drafts found")
+		default:
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, drafts)
 }
 
 func (a *App) createDraftHandler(w http.ResponseWriter, r *http.Request) {
