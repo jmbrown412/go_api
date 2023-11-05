@@ -106,9 +106,34 @@ func (d *DocumentService) GetDraftById(id int) (*Draft, error) {
 
 func (d *DocumentService) CreateDraftComment(req CreateDraftCommentRequest) (*Comment, error) {
 	// Lookup the draft
+	draft, err := d.GetDraftById(req.ID)
+	if draft == nil || err != nil {
+		return nil, err
+	}
 
-	// Add the comment
+	userId := 1 // TODO Implement a Users table
 
-	// Return draft
-	return nil, nil
+	res, err := d.DB.Exec(
+		"INSERT INTO comments(userid, text, draftid, createdat) VALUES($1, $2, $3, $4)", userId, req.Text, draft.ID, time.Now(),
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var id int64
+	if id, err = res.LastInsertId(); err != nil {
+		return nil, err
+	}
+	return d.GetDraftCommentById(int(id))
+}
+
+func (d *DocumentService) GetDraftCommentById(id int) (*Comment, error) {
+	row := d.DB.QueryRow("SELECT id, userid, text, draftid, createdat FROM comments WHERE id=?", id)
+
+	comment := Comment{}
+	if err := row.Scan(&comment.ID, &comment.UserID, &comment.Text, &comment.DraftID, &comment.CreatedAt); err == sql.ErrNoRows {
+		return nil, err
+	}
+	return &comment, nil
 }

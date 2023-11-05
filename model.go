@@ -26,14 +26,15 @@ type Document struct {
 
 type Draft struct {
 	ID         int       `json:"id"`
-	DocumentID int       `json:"documemtid"`
+	DocumentID int       `json:"documentid"`
 	Text       string    `json:"text"`
 	CreatedAt  time.Time `json:"createdat"`
 }
 
 type Comment struct {
 	ID        int       `json:"id"`
-	UserId    int       `json:"userid"`
+	UserID    int       `json:"userid"`
+	DraftID   int       `json:"draftid"`
 	Text      string    `json:"text"`
 	CreatedAt time.Time `json:"createdat"`
 }

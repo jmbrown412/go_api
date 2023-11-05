@@ -93,6 +93,49 @@ func TestCreateDocumentMultipleDrafts(t *testing.T) {
 	}
 }
 
+func TestCreateDraftComment(t *testing.T) {
+	a.Initialize()
+	clearTable()
+
+	// First, create a draft
+	request := main.CreateDocumentDraftRequest{Name: "test document", Text: "test draft text"}
+	requestBytes, err := json.Marshal(request)
+	if err != nil {
+		t.Error(err)
+	}
+	req, _ := http.NewRequest("POST", "/api/drafts", bytes.NewBuffer(requestBytes))
+	req.Header.Set("Content-Type", "application/json")
+
+	response := executeRequest(req)
+	checkResponseCode(t, http.StatusCreated, response.Code)
+
+	var m map[string]interface{}
+	json.Unmarshal(response.Body.Bytes(), &m)
+
+	if m["text"] != "test draft text" {
+		t.Errorf("Expected document text to be 'test draft text'. Got '%v'", m["text"])
+	}
+
+	// Now let's create a comment on the draft
+	commentRequest := main.CreateDraftCommentRequest{ID: 1, Text: "test draft comment text"}
+	commentRequestBytes, err := json.Marshal(commentRequest)
+	if err != nil {
+		t.Error(err)
+	}
+	req2, _ := http.NewRequest("POST", "/api/drafts/1/comments", bytes.NewBuffer(commentRequestBytes))
+	req2.Header.Set("Content-Type", "application/json")
+
+	response2 := executeRequest(req2)
+	checkResponseCode(t, http.StatusCreated, response2.Code)
+
+	var m2 map[string]interface{}
+	json.Unmarshal(response2.Body.Bytes(), &m2)
+
+	if m2["text"] != commentRequest.Text {
+		t.Errorf("Expected document text to be 'test draft comment text'. Got '%v'", m["text"])
+	}
+}
+
 func clearTable() {
 	a.DB.Exec("DELETE FROM documents")
 	a.DB.Exec("DELETE FROM drafts")
