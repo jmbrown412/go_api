@@ -4,11 +4,20 @@ import (
 	"time"
 )
 
-type CreateDocumentRequest struct {
+// ---------------------------------
+// API Request Models
+type CreateDocumentDraftRequest struct {
 	Name string `json:"name"`
 	Text string `json:"text"`
 }
 
+type CreateDraftCommentRequest struct {
+	ID   int    `json:"id"`
+	Text string `json:"text"`
+}
+
+// --------------------------------
+// DB Entities
 type Document struct {
 	ID        int       `json:"id"`
 	Name      string    `json:"name"`

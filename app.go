@@ -59,6 +59,7 @@ func (a *App) Initialize() (bool, *error) {
 func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/api/drafts", a.getDraftsHandler).Methods("GET")
 	a.Router.HandleFunc("/api/drafts", a.createDraftHandler).Methods("POST")
+	a.Router.HandleFunc("/api/drafts/{id:[0-9]+}/comments", a.createCommentHandler).Methods("POST")
 }
 
 func (a *App) getDraftsHandler(w http.ResponseWriter, r *http.Request) {
@@ -77,7 +78,7 @@ func (a *App) getDraftsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) createDraftHandler(w http.ResponseWriter, r *http.Request) {
-	var req CreateDocumentRequest
+	var req CreateDocumentDraftRequest
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&req); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
@@ -85,13 +86,31 @@ func (a *App) createDraftHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	doc, err := a.DocService.CreateDraft(req.Name, req.Text)
+	doc, err := a.DocService.CreateDraft(req)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	respondWithJSON(w, http.StatusCreated, doc)
+}
+
+func (a *App) createCommentHandler(w http.ResponseWriter, r *http.Request) {
+	var req CreateDraftCommentRequest
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&req); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	draft, err := a.DocService.CreateDraftComment(req)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, draft)
 }
 
 func respondWithError(w http.ResponseWriter, code int, message string) {

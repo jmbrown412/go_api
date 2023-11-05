@@ -29,11 +29,11 @@ func TestCreateDraft(t *testing.T) {
 	a.Initialize()
 	clearTable()
 
-	request := main.CreateDocumentRequest{Name: "test document", Text: "test draft text"}
+	request := main.CreateDocumentDraftRequest{Name: "test document", Text: "test draft text"}
 	requestBytes, err := json.Marshal(request)
-    if err != nil {
-        t.Error(err)
-    }
+	if err != nil {
+		t.Error(err)
+	}
 	req, _ := http.NewRequest("POST", "/api/drafts", bytes.NewBuffer(requestBytes))
 	req.Header.Set("Content-Type", "application/json")
 
@@ -52,11 +52,11 @@ func TestCreateDocumentMultipleDrafts(t *testing.T) {
 	a.Initialize()
 	clearTable()
 
-	request := main.CreateDocumentRequest{Name: "test document", Text: "test draft text"}
+	request := main.CreateDocumentDraftRequest{Name: "test document", Text: "test draft text"}
 	requestBytes, err := json.Marshal(request)
-    if err != nil {
-        t.Error(err)
-    }
+	if err != nil {
+		t.Error(err)
+	}
 	req, _ := http.NewRequest("POST", "/api/drafts", bytes.NewBuffer(requestBytes))
 	req.Header.Set("Content-Type", "application/json")
 
@@ -70,11 +70,11 @@ func TestCreateDocumentMultipleDrafts(t *testing.T) {
 		t.Errorf("Expected document text to be 'test draft text'. Got '%v'", m["text"])
 	}
 
-	request2 := main.CreateDocumentRequest{Name: "test document", Text: "test draft text 2"}
+	request2 := main.CreateDocumentDraftRequest{Name: "test document", Text: "test draft text 2"}
 	requestBytes2, err := json.Marshal(request2)
-    if err != nil {
-        t.Error(err)
-    }
+	if err != nil {
+		t.Error(err)
+	}
 	req2, _ := http.NewRequest("POST", "/api/drafts", bytes.NewBuffer(requestBytes2))
 	req2.Header.Set("Content-Type", "application/json")
 

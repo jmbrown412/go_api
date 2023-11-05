@@ -73,14 +73,14 @@ func (d *DocumentService) GetDrafts() ([]Draft, error) {
 	return drafts, nil
 }
 
-func (d *DocumentService) CreateDraft(name, text string) (*Draft, error) {
-	doc, err := d.CreateDocument(name)
+func (d *DocumentService) CreateDraft(req CreateDocumentDraftRequest) (*Draft, error) {
+	doc, err := d.CreateDocument(req.Name)
 	if err != nil {
 		return nil, err
 	}
 
 	res, err := d.DB.Exec(
-		"INSERT INTO drafts(documentid, text, createdat) VALUES($1, $2, $3)", doc.ID, text, time.Now(),
+		"INSERT INTO drafts(documentid, text, createdat) VALUES($1, $2, $3)", doc.ID, req.Text, time.Now(),
 	)
 
 	if err != nil {
@@ -102,4 +102,13 @@ func (d *DocumentService) GetDraftById(id int) (*Draft, error) {
 		return nil, err
 	}
 	return &draft, nil
+}
+
+func (d *DocumentService) CreateDraftComment(req CreateDraftCommentRequest) (*Comment, error) {
+	// Lookup the draft
+
+	// Add the comment
+
+	// Return draft
+	return nil, nil
 }
