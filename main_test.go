@@ -7,13 +7,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 var a main.App
 
 func TestEmptyDrafts(t *testing.T) {
 	a.Initialize()
-	clearTable()
+	clearTables()
 
 	req, _ := http.NewRequest("GET", "/api/drafts", nil)
 	response := executeRequest(req)
@@ -25,9 +26,35 @@ func TestEmptyDrafts(t *testing.T) {
 	}
 }
 
+func TestGetAllDocumentsWithRecentDrafts(t *testing.T) {
+	a.Initialize()
+	clearTables()
+
+	// Setup the DB with a couple drafts with some comments
+	a.DB.Exec("INSERT INTO documents(name, createdat) VALUES($1, $2)", "Test document 1", time.Now())
+	a.DB.Exec("INSERT INTO documents(name, createdat) VALUES($1, $2)", "Test document 2", time.Now())
+
+	a.DB.Exec("INSERT INTO drafts(documentid, text, createdat) VALUES($1, $2, $3)", 1, "Doc1 comment1", time.Now())
+	a.DB.Exec("INSERT INTO drafts(documentid, text, createdat) VALUES($1, $2, $3)", 1, "Doc1 comment2", time.Now())
+
+	a.DB.Exec("INSERT INTO drafts(documentid, text, createdat) VALUES($1, $2, $3)", 2, "Doc2 comment1", time.Now())
+	a.DB.Exec("INSERT INTO drafts(documentid, text, createdat) VALUES($1, $2, $3)", 2, "Doc2 comment2", time.Now())
+
+	req, _ := http.NewRequest("GET", "/api/documents", nil)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	if body := response.Body.String(); body == "[]" {
+		t.Errorf("Expected an array with 2 documents. Got %s", body)
+	}
+
+	// TODO - Ran out of steam. Make this test more explicit checks
+}
+
 func TestCreateDraft(t *testing.T) {
 	a.Initialize()
-	clearTable()
+	clearTables()
 
 	request := main.CreateDocumentDraftRequest{Name: "test document", Text: "test draft text"}
 	requestBytes, err := json.Marshal(request)
@@ -50,7 +77,7 @@ func TestCreateDraft(t *testing.T) {
 
 func TestCreateDocumentMultipleDrafts(t *testing.T) {
 	a.Initialize()
-	clearTable()
+	clearTables()
 
 	request := main.CreateDocumentDraftRequest{Name: "test document", Text: "test draft text"}
 	requestBytes, err := json.Marshal(request)
@@ -95,7 +122,7 @@ func TestCreateDocumentMultipleDrafts(t *testing.T) {
 
 func TestCreateDraftComment(t *testing.T) {
 	a.Initialize()
-	clearTable()
+	clearTables()
 
 	// First, create a draft
 	request := main.CreateDocumentDraftRequest{Name: "test document", Text: "test draft text"}
@@ -138,7 +165,7 @@ func TestCreateDraftComment(t *testing.T) {
 
 func TestSearchDrafts(t *testing.T) {
 	a.Initialize()
-	clearTable()
+	clearTables()
 
 	// First, create a draft
 	request := main.CreateDocumentDraftRequest{Name: "test document", Text: "test draft text"}
@@ -179,10 +206,14 @@ func TestSearchDrafts(t *testing.T) {
 	}
 }
 
-func clearTable() {
+func clearTables() {
 	a.DB.Exec("DELETE FROM documents")
 	a.DB.Exec("DELETE FROM drafts")
+	a.DB.Exec("DELETE FROM comments")
 	a.DB.Exec("ALTER SEQUENCE drafts_id_seq RESTART WITH 1")
+	a.DB.Exec("ALTER SEQUENCE documents_id_seq RESTART WITH 1")
+	a.DB.Exec("ALTER SEQUENCE comments_id_seq RESTART WITH 1")
+
 }
 
 func executeRequest(req *http.Request) *httptest.ResponseRecorder {

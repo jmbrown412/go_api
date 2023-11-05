@@ -73,6 +73,40 @@ func (d *DocumentService) GetDrafts() ([]Draft, error) {
 	return drafts, nil
 }
 
+func (d *DocumentService) GetDocuments() ([]DocumentWithRecentDraft, error) {
+	docsWithDrafts := []DocumentWithRecentDraft{}
+	rows, err := d.DB.Query(
+		"SELECT id, name, createdat FROM documents")
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	docs := []Document{}
+	for rows.Next() {
+		var document Document
+		if err := rows.Scan(&document.ID, &document.Name, &document.CreatedAt); err != nil {
+			return nil, err
+		}
+		docs = append(docs, document)
+	}
+
+	for i := 0; i < len(docs); i++ {
+		row := d.DB.QueryRow("SELECT id, documentid, text, createdat FROM drafts WHERE documentid=? ORDER BY createdat desc LIMIT 1", docs[i].ID)
+
+		draft := Draft{}
+		if err := row.Scan(&draft.ID, &draft.DocumentID, &draft.Text, &draft.CreatedAt); err == sql.ErrNoRows {
+			return nil, err
+		}
+		docWithDraft := DocumentWithRecentDraft{Name: docs[i].Name, Text: draft.Text}
+		docsWithDrafts = append(docsWithDrafts, docWithDraft)
+	}
+
+	return docsWithDrafts, nil
+}
+
 func (d *DocumentService) CreateDraft(req CreateDocumentDraftRequest) (*Draft, error) {
 	doc, err := d.CreateDocument(req.Name)
 	if err != nil {

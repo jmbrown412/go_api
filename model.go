@@ -16,6 +16,13 @@ type CreateDraftCommentRequest struct {
 	Text string `json:"text"`
 }
 
+// ---------------------------------
+// API Response Models
+type DocumentWithRecentDraft struct {
+	Name string `json:"name"`
+	Text string `json:"text"`
+}
+
 // --------------------------------
 // DB Entities
 type Document struct {

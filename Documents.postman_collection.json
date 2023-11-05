@@ -26,6 +26,25 @@
 			"response": []
 		},
 		{
+			"name": "GetAllDocuments",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8010/api/documents",
+					"host": [
+						"localhost"
+					],
+					"port": "8010",
+					"path": [
+						"api",
+						"documents"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "SearchDrafts",
 			"request": {
 				"method": "GET",
