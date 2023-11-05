@@ -9,6 +9,7 @@ that lets you do the following:
 * Create drafts of documents
 * Add comments to drafts
 * Search for drafts containing specific text
+* Get all documents with their most recent draft
 
 
 REQUIREMENTS
