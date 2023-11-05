@@ -21,15 +21,23 @@ func (a *App) Initialize() (bool, *error) {
 	const create string = `
 		CREATE TABLE IF NOT EXISTS documents (
 			id INTEGER NOT NULL PRIMARY KEY,
-			name text,
-			text TEXT,
+			name text UNIQUE,
 			createdat DATETIME NOT NULL
+		);
+		CREATE TABLE IF NOT EXISTS drafts (
+			id INTEGER NOT NULL PRIMARY KEY,
+			documentid INTEGER,
+			text TEXT,
+			createdat DATETIME NOT NULL,
+  			FOREIGN KEY(documentid) REFERENCES documents(id)
 		);
 		CREATE TABLE IF NOT EXISTS comments (
 			id INTEGER NOT NULL PRIMARY KEY,
 			userid INTEGER,
 			text TEXT,
-			createdat DATETIME NOT NULL
+			draftid INTEGER,
+			createdat DATETIME NOT NULL,
+			FOREIGN KEY(draftid) REFERENCES document_drafts(id)
 		);
 		`
 	db, err := sql.Open("sqlite3", file)
@@ -77,7 +85,7 @@ func (a *App) createDraftHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	doc, err := a.DocService.CreateDocument(req.Name, req.Text)
+	doc, err := a.DocService.CreateDraft(req.Name, req.Text)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
